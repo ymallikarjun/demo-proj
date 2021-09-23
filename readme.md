@@ -105,7 +105,7 @@ push main.tf to Git.
 	1 Window VM in each subnet 
 	1 Storage account 
 
-Shared via Git
+**Shared via Git main.tf
 
 
 **
