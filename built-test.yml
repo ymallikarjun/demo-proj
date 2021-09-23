@@ -1,0 +1,63 @@
+# ASP.NET Core
+# Build and test ASP.NET Core projects targeting .NET Core.
+# Add steps that run tests, create a NuGet package, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+- task: DotNetCoreCLI@1
+  displayName: Restore
+  inputs:
+    command: restore
+    projects: '**/*.csproj'
+
+steps:
+- task: DotNetCoreCLI@1
+  displayName: Build
+  inputs:
+    projects: '**/*.csproj'
+    arguments: '--configuration $(BuildConfiguration)'
+
+steps:
+- task: DotNetCoreCLI@1
+  displayName: Test
+  inputs:
+    command: test
+    projects: '**/*Tests/*.csproj'
+    arguments: '--logger:trx;logfilename=TEST.xml'
+
+steps:
+- task: DotNetCoreCLI@1
+  displayName: Publish
+  inputs:
+    command: publish
+    arguments: '--configuration $(BuildConfiguration) --output $(build.artifactstagingdirectory)'
+
+- task: PublishTestResults@2
+  inputs:
+    testRunner: VSTest
+    testResultsFiles: '**/*.trx'
+    failOnStandardError: 'true'
+    failTaskOnFailedTests: 'true' 
+
+
+steps:
+- task: CopyFiles@2
+  displayName: 'Copy Terraform Files'
+  inputs:
+    SourceFolder: '$(build.sourcesdirectory)'
+    TargetFolder: '$(build.artifactstagingdirectory)'
+
+steps:
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact'
+  inputs:
+    PathtoPublish: '$(build.artifactstagingdirectory)'
